@@ -27,6 +27,7 @@ Despite some progress, academia has not yet created a large and diversified deep
 1. **Extensive volume**: Featuring 300K AI-generated/tampered and authentic images with comprehensive annotations.
 2. **Broad diversity**: Encompassing fully synthetic and tampered images across various classes.
 3. **Elevated realism**: Including images that are predominantly indistinguishable from genuine ones through mere visual inspection.
+
 Furthermore, leveraging the exceptional capabilities of large multimodal models, we propose a new image deepfake detection, localization, and explanation framework, named **SIDA (Social media Image Detection, localization, and explanation Assistant)**. SIDA not only discerns the authenticity of images but also delineates tampered regions through mask prediction and provides textual explanations of the model’s judgment criteria.
 Compared with state-of-the-art deepfake detection models on SID-Set and other benchmarks, extensive experiments demonstrate that SIDA achieves superior performance.
 
