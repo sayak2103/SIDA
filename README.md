@@ -35,20 +35,15 @@ Compared with state-of-the-art deepfake detection models on SID-Set and other be
 
 ## Methods
 
-<p align="center">
-  <figure>
-    <img src="images/generation.png" width="100%">
-    <figcaption>Figure 1: Generation Process</figcaption>
-  </figure>
-</p>
+<div align="center">
+  <figcaption><strong>Figure 1: Generation Process</strong></figcaption>
+  <img src="images/generation.png" width="100%">
+</div>
 
-<p align="center">
-  <figure>
-    <img src="images/Pipeline.png" width="100%">
-    <figcaption>Figure 2: Model Pipeline Overview</figcaption>
-  </figure>
-</p>
-
+<div align="center">
+  <figcaption><strong>Figure 2: Model Pipeline Overview</strong></figcaption>
+  <img src="images/Pipeline.png" width="100%">
+</div>
 
 ## Experiment
 
