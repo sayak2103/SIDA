@@ -15,3 +15,19 @@
 
 
 [Zhenglin Huang](https://scholar.google.com/citations?user=30SRxRAAAAAJ&hl=en&oi=ao), [Jinwei Hu](https://orcid.org/0009-0008-5261-211X), [Xiangtai Li](https://lxtgh.github.io/),[Yiwei He](https://orcid.org/0000-0003-0717-8517), [Xingyu Zhao](https://www.xzhao.me/supervision-teaching),[Bei Peng](https://beipeng.github.io/), [Baoyuan Wu](https://sites.google.com/site/baoyuanwu2015/home),[Xiaowei Huang](https://cgi.csc.liv.ac.uk/~xiaowei/),[Guangliang Cheng](https://sites.google.com/view/guangliangcheng/homepage)
+
+##Abstract
+                The rapid advancement of generative models in creating
+                highly realistic images poses substantial risks for misinformation dissemination. For instance, a synthetic image,
+                when shared on social media, can mislead extensive audiences and erode trust in digital content, resulting in severe
+                repercussions. Despite some progress, academia has not yet
+                created a large and diversified deepfake detection dataset
+                for social media, nor has it devised an effective solution to
+                address this issue. In this paper, we introduce the Social media Image Detection dataSet (SID-Set), which offers three
+                key advantages: (1) extensive volume, featuring 300K AIgenerated/tampered and authentic images with comprehensive annotations, (2) broad diversity, encompassing fully
+                synthetic and tampered images across various classes, and
+                (3) elevated realism, with images that are predominantly indistinguishable from genuine ones through mere visual inspection. Furthermore, leveraging the exceptional capabilities of large multimodal models, we propose a new image
+                deepfake detection, localization, and explanation framework, named SIDA (Social media Image Detection, localization, and explanation Assistant). SIDA not only discerns
+                the authenticity of images, but also delineates tampered regions through mask prediction and provides textual explanations of the model’s judgment criteria. Compared with
+                state-of-the-art deepfake detection models on SID-Set and
+                other benchmarks, extensive experiments demonstrate that SIDA achieves superior performance. 
