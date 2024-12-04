@@ -8,7 +8,7 @@
     <a href='#' style='padding-left: 0.5rem;'>
       <img src='https://img.shields.io/badge/Huggingface%20Model-8A2BE2' alt='Project Page'> </a>
     <a href='#' style='padding-left: 0.5rem;'>
-      <img src='https://img.shields.io/badge/Dataset-Available-brightgreen' alt='Dataset'> </a>
+      <img src='https://img.shields.io/badge/Dataset-Coming%20Soon-yellow' alt='Dataset Coming Soon'>
     <a href='https://www.youtube.com/watch?v=oAc9BxOoDe8&t=2s' style='padding-left: 0.5rem;'>
       <img src='https://img.shields.io/badge/Video-Watch%20Now-red' alt='Video'> </a>
   </p>
