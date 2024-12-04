@@ -1,18 +1,12 @@
-# SIDA: Social Media Image Deepfake Detection, Localization, and Explanation with Large Multimodal Model
+## SIDA: Social Media Image Deepfake Detection, Localization and Explanation with Large Multimodal Model
 
-### Authors
-- [Zhenglin Huang](https://scholar.google.com/citations?user=30SRxRAAAAAJ&hl=en&oi=ao)<sup>1</sup>
-- Jinwei Hu<sup>1</sup>
-- [Xiangtai Li](https://lxtgh.github.io/)<sup>2</sup>
-- Yiwei He<sup>1</sup>
-- [Xingyu Zhao](https://www.xzhao.me/supervision-teaching)<sup>3</sup>
-- [Bei Peng](https://beipeng.github.io/)<sup>1</sup>
-- [Baoyuan Wu](https://sites.google.com/site/baoyuanwu2015/home)<sup>4</sup>
-- [Xiaowei Huang](https://cgi.csc.liv.ac.uk/~xiaowei/)<sup>1</sup>
-- [Guangliang Cheng](https://sites.google.com/view/guangliangcheng/homepage)<sup>1</sup>
-
-### Institutions
-1. University of Liverpool, UK  
-2. Bytedance  
-3. WMG, University of Warwick  
-4. The Chinese University of Hong Kong, Shenzhen, Guangdong, China  
+[arxiv](#), [Project Page](https://hzlsaber.github.io/projects/SIDA/), [Introduction by Fahd Mirza](https://www.youtube.com/watch?v=oAc9BxOoDe8)
+  <p align="center">
+    <a href='https://arxiv.org/abs/2406.19389'>
+      <img src='#' alt='arXiv PDF'> </a>
+    <a href='https://lxtgh.github.io/project/omg_llava/' style='padding-left: 0.5rem;'>
+      <img src='https://img.shields.io/badge/Project-Page-blue?style=flat&logo=Google%20chrome&logoColor=blue' alt='Project Page'> </a>
+    <a href='https://huggingface.co/zhangtao-whu/OMG-LLaVA' style='padding-left: 0.5rem;'>
+      <img src='https://img.shields.io/badge/Huggingface%20Model-8A2BE2' alt='Project Page'> </a>
+    <a href="https://huggingface.co/spaces/LXT/OMG_LLaVA">
+  </p>
