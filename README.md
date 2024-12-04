@@ -1,4 +1,6 @@
-## SIDA: Social Media Image Deepfake Detection, Localization and Explanation with Large Multimodal Model
+<div align="center">
+<img src="./images/SIDA.png" alt="Image Alt Text" width="150" height="150">
+<h3> SIDA: Social Media Image Deepfake Detection, Localization and Explanation with Large Multimodal Model </h3>
 
   <p align="center">
     <a href='#'>
