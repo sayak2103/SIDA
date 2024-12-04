@@ -32,3 +32,18 @@ Compared with state-of-the-art deepfake detection models on SID-Set and other be
 
 ## News
 - 🔥 The code and dataset are coming soon
+
+## Methods
+
+<p align="center"> <img src="images/generation.png" width="100%"> </p>
+
+<p align="center"> <img src="images/Pipeline.png" width="100%"> </p>
+
+## Experiment
+
+<p align="center"> <img src="images/experiment.png" width="100%"> </p>
+
+## Citation 
+
+## Acknowledgement
+-  This work is built upon the [LLaVA](https://github.com/haotian-liu/LLaVA) and [LISA](https://github.com/dvlab-research/LISA). 
