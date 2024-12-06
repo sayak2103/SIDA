@@ -53,7 +53,15 @@ Compared with state-of-the-art deepfake detection models on SID-Set and other be
 ## Citation 
 
 ```
-
+@misc{huang2024sidasocialmediaimage,
+        title={SIDA: Social Media Image Deepfake Detection, Localization and Explanation with Large Multimodal Model}, 
+        author={Zhenglin Huang and Jinwei Hu and Xiangtai Li and Yiwei He and Xingyu Zhao and Bei Peng and Baoyuan Wu and Xiaowei Huang and Guangliang Cheng},
+        year={2024},
+        eprint={2412.04292},
+        archivePrefix={arXiv},
+        primaryClass={cs.CV},
+        url={https://arxiv.org/abs/2412.04292}, 
+  }
 ```
 
 ## Acknowledgement
