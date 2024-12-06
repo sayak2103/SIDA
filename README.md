@@ -3,7 +3,7 @@
 <h3> SIDA: Social Media Image Deepfake Detection, Localization and Explanation with Large Multimodal Model </h3>
 
   <p align="center">
-    <a href='#'>
+    <a href='https://arxiv.org/pdf/2412.04292'>
       <img src='https://img.shields.io/badge/Paper-PDF-green?style=flat&logo=arXiv&logoColor=green' alt='arXiv PDF'> </a>
     <a href='https://hzlsaber.github.io/projects/SIDA/' style='padding-left: 0.5rem;'>
       <img src='https://img.shields.io/badge/Project-Page-blue?style=flat&logo=Google%20chrome&logoColor=blue' alt='Project Page'> </a>
