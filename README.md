@@ -50,6 +50,18 @@ Compared with state-of-the-art deepfake detection models on SID-Set and other be
 
 <p align="center"> <img src="images/experiment.png" width="100%"> </p>
 
+## Dataset Access
+
+We provide two methods to access the SID_Set dataset:
+
+1. Public Access via Hugging Face
+The full training set and validation set are publicly available on [Hugging Face](https://huggingface.co/datasets/saberzl/SID_Set). To load SID_Set, follow the instructions in the [Hugging Face Datasets documentation](https://huggingface.co/docs/datasets/index). You can also explore visual examples directly through the dataset viewer on the platform.
+
+2. Download from Google Drive
+Alternatively, you can download the train.zip and val.zip files for SID_Set from [Google Drive](https://drive.google.com/drive/folders/1sFZxSrDibjpvzTrHeNVS1fTf-qIue744?usp=drive_link). Due to size limitations, we’ve split the train_full_synthetic set into two parts. After downloading, please place both parts in a train/ directory.
+
+For the test set, we provide only a single test.zip file to minimize the risk of data contamination (e.g., from foundation models crawling the test set for training). You can download it [here](https://drive.google.com/file/d/1M2GGCvpg7UDpP6HaHT18-VqzIyD5yhC3/view?usp=drive_link).
+
 ## Citation 
 
 ```
