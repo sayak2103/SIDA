@@ -50,6 +50,13 @@ Compared with state-of-the-art deepfake detection models on SID-Set and other be
 
 <p align="center"> <img src="images/experiment.png" width="100%"> </p>
 
+## Installation
+
+```
+pip install -r requirements.txt
+pip install flash-attn --no-build-isolation
+```
+
 ## Dataset Access
 
 We provide two methods to access the SID_Set dataset:
