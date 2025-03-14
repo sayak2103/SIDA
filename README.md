@@ -69,6 +69,88 @@ Alternatively, you can download the train.zip and val.zip files for SID_Set from
 
 For the test set, we provide only a single test.zip file to minimize the risk of data contamination (e.g., from foundation models crawling the test set for training). You can download it [here](https://drive.google.com/file/d/1M2GGCvpg7UDpP6HaHT18-VqzIyD5yhC3/view?usp=drive_link).
 
+## Training
+### Training data
+To train SIDA, we use the SID_Set dataset. For access to SID_Set, please refer to the Dataset Access section. If you download SID_Set through Google Drive, please organize the files as follows:
+
+```
+├── dataset
+│   ├── train
+│   │   └──real
+│   │   └──full_synthetic
+│   │   └──masks
+│   │   └──tampered
+│   ├── val
+│   │   ├── real
+│   │   ├── full_synthetic
+│   │   ├── masks
+│   │   └──tampered
+```
+
+### Pre-trained weights
+SIDA-7B is pretrained on LISA-7B-v1, while SIDA-13B is pretrained on LISA-13B-llama2-v1. To download the corresponding model weights, please refer to the [LISA repository](https://github.com/dvlab-research/LISA). After downloading, place the model weights in the ```/ck``` directory.
+
+### SAM VIT-H weights
+Download SAM ViT-H pre-trained weights from the [link](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth).
+
+### Training
+```
+deepspeed --master_port=24999 train_SIDA.py \
+  --version="/path_to/LISA-7B-v1" \
+  --dataset_dir='/path_to/benchmark' \
+  --vision_pretrained="/path_to/sam_vit_h_4b8939.pth" \
+  --val_dataset="/path_to/benchmark/"\
+  --batch_size=2 \
+  --exp_name="SIDA-7B" \
+  --epochs=10 \
+  --steps_per_epoch=1000 \
+  --lr=0.0001 \
+```
+
+### Merge LoRA Weight
+When training is finished, to get the full model weight:
+```
+cd ./runs/SIDA-7B/ckpt_model && python zero_to_fp32.py . ../pytorch_model.bin
+```
+
+Merge the LoRA weights of `pytorch_model.bin`, save the resulting model into your desired path in the Hugging Face format:
+```
+CUDA_VISIBLE_DEVICES="" python merge_lora_weights_and_save_hf_model.py \
+  --version="PATH_TO_LISA" \
+  --weight="PATH_TO_pytorch_model.bin" \
+  --save_path="PATH_TO_SAVED_MODEL"
+```
+
+For example:
+```
+CUDA_VISIBLE_DEVICES="" python3 merge_lora_weights_and_save_hf_model.py \
+  --version="./ck/LISA-7B-v1" \
+  --weight="/runs/SIDA-7B/pytorch_model.bin" \
+  --save_path="./ck/SIDA-7B"
+```
+
+### Validation
+```
+deepspeed --master_port=24999 train_SIDA.py \
+  --version="PATH_TO_SIDA_HF_Model_Directory" \
+  --dataset_dir='/path_to/benchmark' \
+  --vision_pretrained="/path_to/sam_vit_h_4b8939.pth" \
+  --val_dataset="/path_to/benchmark/"\
+  --batch_size=2 \
+  --exp_name="SIDA-7B" \
+  --eval_only
+```
+
+Note: The paper's results were generated using SIDA-7B and SIDA-13B models. To reproduce the experimental results, please use these specific models.
+
+### Inference
+To chat with SIDA,  we recommend using SIDA-13B for more accurate segmentation results. To view explanation results, please use SIDA-13B-description.
+
+```
+CUDA_VISIBLE_DEVICES=0 python chat.py --version='saberzl/SIDA-13B-description'
+CUDA_VISIBLE_DEVICES=0 python chat.py --version='saberzl/SIDA-13B'
+```
+
 ## Citation 
 
 ```
