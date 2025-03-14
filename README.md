@@ -163,4 +163,4 @@ CUDA_VISIBLE_DEVICES=0 python chat.py --version='saberzl/SIDA-13B'
 ```
 
 ## Acknowledgement
--  This work is built upon the [LLaVA](https://github.com/haotian-liu/LLaVA) and [LISA](https://github.com/dvlab-research/LISA). 
+This work is built upon the [LLaVA](https://github.com/haotian-liu/LLaVA) and [LISA](https://github.com/dvlab-research/LISA).  Much of the documentation in this README is adapted from LISA. We thank the authors for their innovative work!
