@@ -54,8 +54,7 @@ Compared with state-of-the-art deepfake detection models on SID-Set and other be
 ## Installation
 
 ```
-pip install -r requirements.txt
-pip install flash-attn --no-build-isolation
+updating...
 ```
 
 ## Dataset Access
