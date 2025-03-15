@@ -125,7 +125,7 @@ For example:
 ```
 CUDA_VISIBLE_DEVICES="" python3 merge_lora_weights_and_save_hf_model.py \
   --version="./ck/LISA-7B-v1" \
-  --weight="/runs/SIDA-7B/pytorch_model.bin" \
+  --weight="./runs/SIDA-7B/pytorch_model.bin" \
   --save_path="./ck/SIDA-7B"
 ```
 
