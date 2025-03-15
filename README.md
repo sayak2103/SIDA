@@ -80,12 +80,13 @@ To train SIDA, we use the SID_Set dataset. For access to SID_Set, please refer t
 │   │   └──full_synthetic
 │   │   └──masks
 │   │   └──tampered
-│   ├── val
+│   ├── validation
 │   │   ├── real
 │   │   ├── full_synthetic
 │   │   ├── masks
 │   │   └──tampered
 ```
+Note: The existing training code is designed for downloading the SID_Set from Google Drive. If you download datasets from Hugging Face, please refer to the relevant documentation for instructions on how to use the dataset.
 
 ### Pre-trained weights
 SIDA-7B is pretrained on LISA-7B-v1, while SIDA-13B is pretrained on LISA-13B-llama2-v1. To download the corresponding model weights, please refer to the [LISA repository](https://github.com/dvlab-research/LISA). After downloading, place the model weights in the ```/ck``` directory.
