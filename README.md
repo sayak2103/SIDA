@@ -160,7 +160,7 @@ Please input the image path: ./examples/figure1.png
 text_output:  <s> [CLS] This image is classified as tampered. It has been altered. [SEG] A mask highlighting the tampered region is provided.
 ```
 You should get masked image like below:
-<img src="examples/figure1_mask.png" width="100%">
+<img src="examples/figure1_mask.jpg" width="100%">
 ## Citation 
 
 ```
