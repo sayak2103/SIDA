@@ -206,7 +206,7 @@ def main(args):
             input_ids,
             resize_list,
             original_size_list,
-            max_new_tokens=512,
+            max_new_tokens=256,
             tokenizer=tokenizer,
         )
         output_ids = output_ids[0][output_ids[0] != IMAGE_TOKEN_INDEX]
