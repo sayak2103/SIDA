@@ -268,7 +268,7 @@ def main(args):
             base_image_dir=args.dataset_dir,  # Root directory containing image data
             tokenizer=tokenizer,
             vision_tower=args.vision_tower,  # Vision model used for pre-processing (e.g., CLIP)
-            split="val",  # Specify that this is the training split
+            split="validation",  # Specify that this is the training split
             precision=args.precision,  # Precision for image processing
             image_size=args.image_size,  # Image size for resizing
     )
