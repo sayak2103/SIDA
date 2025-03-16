@@ -34,7 +34,7 @@ Compared with state-of-the-art deepfake detection models on SID-Set and other be
 ## News
 - 🔥 The code and dataset are coming soon
 - 🔥 (26-02-2025) SIDA has been accepted by CVPR2025! The code and dataset will be released recently.
-- 🔥 Code construction...
+- 🔥 (16-03-2025) Code release. 
 ## Methods
 
 <div align="center">
@@ -86,7 +86,7 @@ To train SIDA, we use the SID_Set dataset. For access to SID_Set, please refer t
 │   │   ├── masks
 │   │   └──tampered
 ```
-Note: The existing training code is designed for downloading the SID_Set from Google Drive. If you download datasets from Hugging Face, please refer to the relevant documentation for instructions on how to use the dataset.
+Note: The existing training code is designed for downloading the SID_Set from Google Drive. If you download datasets from Hugging Face, please refer to the relevant [documentation](https://huggingface.co/docs/datasets/index) for instructions on how to use the dataset.
 
 ### Pre-trained weights
 SIDA-7B is pretrained on LISA-7B-v1, while SIDA-13B is pretrained on LISA-13B-llama2-v1. To download the corresponding model weights, please refer to the [LISA repository](https://github.com/dvlab-research/LISA). After downloading, place the model weights in the ```/ck``` directory.
