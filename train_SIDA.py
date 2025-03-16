@@ -349,21 +349,7 @@ def main(args):
         config=ds_config,
         training_data=None,  # Set to None since we're providing our own loader
     )
-    # model_engine, optimizer, train_loader, scheduler = deepspeed.initialize(
-    #     model=model,
-    #     model_parameters=model.parameters(),
-    #     training_data=train_dataset,
-    #     collate_fn=partial(
-    #         collate_fn,
-    #         tokenizer=tokenizer,
-    #         conv_type=args.conv_type,
-    #         use_mm_start_end=args.use_mm_start_end,
-    #         local_rank=args.local_rank,
-    #         cls_token_idx=args.cls_token_idx,
-    #     ),
-    #     config=ds_config,
-    # )
-    # resume deepspeed checkpoint
+
     if args.auto_resume and len(args.resume) == 0:
         resume = os.path.join(args.log_dir,  "ckpt_model")
         if os.path.exists(resume):
@@ -403,26 +389,6 @@ def main(args):
                  local_rank=args.local_rank,
              ),
         )
-    # if val_dataset is not None:
-    #     assert args.val_batch_size == 1
-    #     val_sampler = torch.utils.data.distributed.DistributedSampler(
-    #         val_dataset, shuffle=False, drop_last=False
-    #     )
-    #     val_loader = torch.utils.data.DataLoader(
-    #         val_dataset,
-    #         batch_size=args.val_batch_size,
-    #         shuffle=False,
-    #         num_workers=args.workers,
-    #         pin_memory=False,
-    #         sampler=val_sampler,
-    #         collate_fn=partial(
-    #             collate_fn,
-    #             tokenizer=tokenizer,
-    #             conv_type=args.conv_type,
-    #             use_mm_start_end=args.use_mm_start_end,
-    #             local_rank=args.local_rank,
-    #         ),
-    #     )
 
     train_iter = iter(train_loader)
 
