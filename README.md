@@ -161,9 +161,7 @@ text_output:  <s> [CLS] This image is classified as tampered. It has been altere
 ```
 You should get masked image like below:
 
-<img src="examples/figure1_mask.png" width="40%"><img src="examples/figure1_masked.jpg" width="40%">
-<img src="examples/figure2_mask.png" width="40%"><img src="examples/figure2_masked.jpg" width="40%">
-<img src="examples/figure3_mask.png" width="40%"><img src="examples/figure3_masked.jpg" width="40%">
+<img src="examples/figure1_mask.png" width="20%"><img src="examples/figure1_masked.jpg" width="20%"><img src="examples/figure2_mask.png" width="20%"><img src="examples/figure2_masked.jpg" width="20%"><img src="examples/figure3_mask.png" width="20%"><img src="examples/figure3_masked.jpg" width="20%">
 ## Citation 
 
 ```
