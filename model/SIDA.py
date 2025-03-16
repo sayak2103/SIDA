@@ -159,8 +159,6 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
         # 2. Initialize base model
         self.cls_token_idx = kwargs.pop("cls_token_idx")
         self.seg_token_idx = kwargs.pop("seg_token_idx")
-
-        #self.seg_token_idx = kwargs.pop("seg_token_idx")
         super().__init__(config)
         self.model = SidaModel(config, **kwargs)
         self.model.initialize_sida_modules(config)
@@ -264,8 +262,6 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
         assert len(self.model.cls_head) == 1
         last_hidden_state_cls = self.model.cls_head[0](output_hidden_states[-1]) 
 
-        #if cls_token_mask.shape[0] == 1:
-            #cls_token_mask = cls_token_mask.squeeze(0)
         cls_result = last_hidden_state_cls[cls_token_mask]
 
         logits = cls_result
@@ -367,9 +363,6 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
             "gt_masks": gt_masks,
             "logits": logits,
             }
-            #output = model_output.logits
-            #ce_loss = model_output.loss
-            #ce_loss = ce_loss * self.ce_loss_weight
             for batch_idx in range(len(pred_masks)):
                 gt_mask = gt_masks[batch_idx]
                 pred_mask = pred_masks[batch_idx]
@@ -398,7 +391,6 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
         loss = self.mask_loss_weight * mask_loss + self.cls_loss_weight * cls_loss
         return {
             "loss": loss,
-            #"ce_loss": ce_loss,
             "mask_bce_loss": mask_bce_loss,
             "mask_dice_loss": mask_dice_loss,
             "mask_loss": mask_loss,
