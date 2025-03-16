@@ -146,9 +146,9 @@ CUDA_VISIBLE_DEVICES="" python3 merge_lora_weights_and_save_hf_model.py \
 ```
 deepspeed --master_port=24999 train_SIDA.py \
   --version="PATH_TO_SIDA_HF_Model_Directory" \
-  --dataset_dir='/path_to/benchmark' \
+  --dataset_dir='/path_to/SID_Set' \
   --vision_pretrained="/path_to/sam_vit_h_4b8939.pth" \
-  --val_dataset="/path_to/benchmark/"\
+  --val_dataset="/path_to/SID_Set/"\
   --batch_size=2 \
   --exp_name="SIDA-7B" \
   --eval_only
