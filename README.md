@@ -54,7 +54,7 @@ Compared with state-of-the-art deepfake detection models on SID-Set and other be
 ## Installation
 
 ```
-updating...
+pip install -r requirements.txt
 ```
 
 ## Dataset Access
@@ -74,7 +74,7 @@ For the test set, we provide only a single test.zip file to minimize the risk of
 To train SIDA, we use the SID_Set dataset. For access to SID_Set, please refer to the Dataset Access section. If you download SID_Set through Google Drive, please organize the files as follows:
 
 ```
-├── dataset
+├── SID_Set
 │   ├── train
 │   │   └──real
 │   │   └──full_synthetic
@@ -98,9 +98,9 @@ Download SAM ViT-H pre-trained weights from the [link](https://dl.fbaipublicfile
 ```
 deepspeed --master_port=24999 train_SIDA.py \
   --version="/path_to/LISA-7B-v1" \
-  --dataset_dir='/path_to/benchmark' \
+  --dataset_dir='/path_to/SID_Set' \
   --vision_pretrained="/path_to/sam_vit_h_4b8939.pth" \
-  --val_dataset="/path_to/benchmark/"\
+  --val_dataset="/path_to/SID_Set/"\
   --batch_size=2 \
   --exp_name="SIDA-7B" \
   --epochs=10 \
