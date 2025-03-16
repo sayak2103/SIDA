@@ -162,6 +162,14 @@ text_output:  <s> [CLS] This image is classified as tampered. It has been altere
 You should get masked image like below:
 
 <img src="examples/figure1_mask.png" width="15%"><img src="examples/figure1_masked.jpg" width="15%">  <img src="examples/figure2_mask.png" width="15%"><img src="examples/figure2_masked.jpg" width="15%">  <img src="examples/figure3_mask.png" width="15%"><img src="examples/figure3_masked.jpg" width="15%">
+
+```
+CUDA_VISIBLE_DEVICES=0 python chat_description.py --version='saberzl/SIDA-13B-description'
+Please input your prompt: Please answer begin with [CLS] for classification, if the image is  tampered, ouput mask the tampered region and explain why. 
+Please input the image path: ./examples/figure1.png
+text_output:  [CLS] The image is tampered. [SEG] Type: {part tampered} Areas:<tampered position> The tampered area is located on the right side of the image, specifically on the face of a person who appears to be a horse.Tampered Content:<Types of objects or parts> The face of a person, specifically the mouth and part of the face, have been altered to resemble a horse's face.Visual Inconsistencies:<lighting> The lighting on the altered face does not match the rest of the image, showing a different intensity and angle.<edges> The edges around the altered area are smoother and less detailed compared to the rest of the face.<resolution> The resolution of the altered area is slightly lower, indicating a difference in image quality.<shadows> Shadows and reflections on the altered face do not align with the light source and other shadows in the image.<boundary> The boundary of the tampered area is not seamless, with a noticeable demarcation between the altered and original parts.
+```
+
 ## Citation 
 
 ```
