@@ -592,7 +592,7 @@ def train(
     return train_iter
 import random
 
-def validate(val_loader, model_engine, epoch, writer, args, sample_ratio=0.01):
+def validate(val_loader, model_engine, epoch, writer, args, sample_ratio=None):
     """
     Validate the model with option for random sampling
     Args:
