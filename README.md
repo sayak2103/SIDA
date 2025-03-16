@@ -152,6 +152,15 @@ CUDA_VISIBLE_DEVICES=0 python chat_description.py --version='saberzl/SIDA-13B-de
 CUDA_VISIBLE_DEVICES=0 python chat.py --version='saberzl/SIDA-13B'
 ```
 
+Examples:
+```
+CUDA_VISIBLE_DEVICES=0 python chat.py --version='saberzl/SIDA-13B'
+Please input your prompt: Please answer begin with [CLS] for classification, if the image is  tampered, ouput mask the tampered region. 
+Please input the image path: ./examples/figure1.png
+text_output:  <s> [CLS] This image is classified as tampered. It has been altered. [SEG] A mask highlighting the tampered region is provided.
+```
+You should get masked image like below:
+<img src="examples/figure1_mask.png" width="100%">
 ## Citation 
 
 ```
