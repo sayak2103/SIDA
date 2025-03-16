@@ -259,9 +259,6 @@ class CustomDataset(torch.utils.data.Dataset):
         elif cls_label == 1:
             return "[CLS] The image is full synthetic"
         else:  # cls_label == 2 (tampered)
-            # if image_name in self.text_descriptions:
-            #     description = self.text_descriptions[image_name]
-            #     return f"[CLS] The image is tampered. {description} [SEG]"
             return "[CLS] The image is tampered [SEG]"
     
     def __getitem__(self, idx):
