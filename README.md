@@ -91,6 +91,13 @@ Note: The existing training code is designed for downloading the SID_Set from Go
 ### Pre-trained weights
 SIDA-7B is pretrained on LISA-7B-v1, while SIDA-13B is pretrained on LISA-13B-llama2-v1. To download the corresponding model weights, please refer to the [LISA repository](https://github.com/dvlab-research/LISA). After downloading, place the model weights in the ```/ck``` directory.
 
+SIDA-7B-description and SIDA-13B-description are finetuned SIDA with descriptions gereated by GPT-4O.
+
+You can download all SIDA versions here:
+SIDA-7B
+SIDA-13B
+SIDA-7B-description
+SIDA-13B-description
 ### SAM VIT-H weights
 Download SAM ViT-H pre-trained weights from the [link](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth).
 
@@ -166,8 +173,8 @@ You should get masked image like below:
 ```
 CUDA_VISIBLE_DEVICES=0 python chat_description.py --version='saberzl/SIDA-13B-description'
 Please input your prompt: Please answer begin with [CLS] for classification, if the image is  tampered, ouput mask the tampered region and explain why. 
-Please input the image path: ./examples/figure1.png
-text_output:  [CLS] The image is tampered. [SEG] Type: {part tampered} Areas:<tampered position> The tampered area is located on the right side of the image, specifically on the face of a person who appears to be a horse.Tampered Content:<Types of objects or parts> The face of a person, specifically the mouth and part of the face, have been altered to resemble a horse's face.Visual Inconsistencies:<lighting> The lighting on the altered face does not match the rest of the image, showing a different intensity and angle.<edges> The edges around the altered area are smoother and less detailed compared to the rest of the face.<resolution> The resolution of the altered area is slightly lower, indicating a difference in image quality.<shadows> Shadows and reflections on the altered face do not align with the light source and other shadows in the image.<boundary> The boundary of the tampered area is not seamless, with a noticeable demarcation between the altered and original parts.
+Please input the image path: ./examples/figure3.png
+text_output:  [CLS] The image is tampered. [SEG] Type: {part tampered} Areas:<tampered position> The tampered area is located on the skier's right leg, specifically around the knee and ankle, in the lower half of the image.Tampered Content:<Types of objects or parts> The skier's right leg, specifically the knee and ankle, showing the ski and the person's clothing.Visual Inconsistencies:<lighting> The lighting on the tampered area does not match the rest of the image, showing a different shadow or highlight.<edges> The edges around the tampered area are unnaturally sharp or blurred, indicating a composite or altered element.<resolution> The resolution of the tampered area is slightly different from the rest of the image, showing a disparity in detail.<shadows> Shadows and reflections in the tampered area do not align with the lighting on other parts of the skier.
 ```
 
 ## Citation 
