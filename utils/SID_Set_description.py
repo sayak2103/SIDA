@@ -35,7 +35,7 @@ def collate_fn(
     cnt = 0
     inferences = []
     has_text_description = []
-    
+
     # Process batch items
     for (
         image_path,
@@ -96,28 +96,30 @@ def collate_fn(
         targets.append(target)
 
     targets = torch.stack(targets)
-    conv = conversation_lib.default_conversation.copy()
-    
+    #conv = conversation_lib.default_conversation.copy()
+
+    conv = conversation_lib.conv_templates["llava_v1"].copy()
+
     # Set separator based on conversation type
     sep = conv.sep + conv.roles[1] + ": " if conv_type == "llava_v1" else "[/INST] "
-    
+
     # Process each conversation using original lengths
     for idx, (conversation, target, orig_len) in enumerate(zip(conversation_list, targets, original_lengths)):
         rounds = conversation.split(conv.sep2)
         cur_len = 1
         target[:cur_len] = IGNORE_INDEX
-        
+
         for i, rou in enumerate(rounds):
             if rou == "":
                 break
-                
+
             parts = rou.split(sep)
             if len(parts) != 2:
                 print(f"Warning: Unexpected format in conversation {idx}")
                 continue
-                
+
             parts[0] += sep
-            
+
             # Calculate lengths
             if DEFAULT_IMAGE_TOKEN in conversation:
                 round_len = len(tokenizer_image_token(rou, tokenizer))
@@ -125,21 +127,21 @@ def collate_fn(
             else:
                 round_len = len(tokenizer(rou).input_ids)
                 instruction_len = len(tokenizer(parts[0]).input_ids) - 2
-            
+
             target[cur_len : cur_len + instruction_len] = IGNORE_INDEX
             cur_len += round_len
-        
+
         # Use original length for verification
         total_len = orig_len
-        
+
         if cur_len != total_len:
             print(f"Length mismatch in conversation {idx}:")
             print(f"cur_len: {cur_len}, total_len: {total_len}")
             print(f"conversation: {conversation}")
-            
+
         # Keep the assertion as a safety check
         assert cur_len == total_len, f"Length mismatch: cur_len={cur_len}, total_len={total_len}"
-        
+
         target[cur_len:] = IGNORE_INDEX
 
     # Handle truncation for non-inference cases
@@ -204,22 +206,22 @@ class CustomDataset(torch.utils.data.Dataset):
         self.images = []
         self.cls_labels = []
         self.invalid_samples = []  # Track problematic samples
-        
+
         # Load images and verify counts
         real_images = glob.glob(os.path.join(split_dir, "real", "*.jpg"))
         full_syn_images = glob.glob(os.path.join(split_dir, "full_synthetic", "*.png"))
         tampered_images = glob.glob(os.path.join(split_dir, "tampered", "*.png"))
-        
+
         # Verify tampered images have corresponding masks
         valid_tampered_images = []
         for img_path in tampered_images:
             # Extract the base filename without extension
             base_name = os.path.splitext(os.path.basename(img_path))[0]
-    
+
             # Construct the mask path (assuming the mask filename appends '_mask' to the base name)
             mask_name = f"{base_name}_mask.png"
             mask_path = os.path.join(split_dir, "masks", mask_name)
-    
+
             # Check if the mask exists
             if os.path.exists(mask_path):
                 valid_tampered_images.append(img_path)
@@ -229,7 +231,7 @@ class CustomDataset(torch.utils.data.Dataset):
         self.images.extend(real_images)
         self.images.extend(full_syn_images)
         self.images.extend(tampered_images)
-        
+
         self.cls_labels.extend([0] * len(real_images))
         self.cls_labels.extend([1] * len(full_syn_images))
         self.cls_labels.extend([2] * len(tampered_images))
@@ -245,7 +247,7 @@ class CustomDataset(torch.utils.data.Dataset):
         self.has_text_description = []
         self.text_descriptions = {}
 
-        if split in ["train", "val"]:
+        if split in ["train", "validation"]:
             print(f"Beginning to load descriptions for {split}:")
 
         desc_dir = os.path.join(base_image_dir, split, "description")
@@ -291,7 +293,7 @@ class CustomDataset(torch.utils.data.Dataset):
                     print(f"Image '{img_name}' has a description.")
                 else:
                     print(f"Image '{img_name}' does NOT have a description.")
-        
+
         # Print the total number of images and how many have descriptions
         total_images = len(self.images)
         total_with_descriptions = sum(self.has_text_description)
@@ -308,30 +310,26 @@ class CustomDataset(torch.utils.data.Dataset):
         padw = self.img_size - w
         x = F.pad(x, (0, padw, 0, padh))
         return x
-    
+    # Then use it in your _generate_response method:
     def _generate_response(self, cls_label, image_name):
-        """Generate response with special tokens and descriptions"""
         if cls_label == 0:
             base_resp = "[CLS] The image is real"
             if image_name in self.text_descriptions:
-                return f"{base_resp}. {self.text_descriptions[image_name]}"
-            return base_resp
+                return f"{base_resp} {self.text_descriptions[image_name]} [END]"
+            return f"{base_resp} [END]"
         elif cls_label == 1:
             base_resp = "[CLS] The image is full synthetic"
             if image_name in self.text_descriptions:
-                return f"{base_resp}. {self.text_descriptions[image_name]}"
-            return base_resp
+                return f"{base_resp} {self.text_descriptions[image_name]} [END]"
+            return f"{base_resp} [END]"
         else:  # cls_label == 2
             base_resp = "[CLS] The image is tampered"
             if image_name in self.text_descriptions:
-                # Add [SEG] for tampered images with description
-                resp = f"{base_resp}. [SEG] {self.text_descriptions[image_name]} "
-                return resp
+                description = self.text_descriptions[image_name]
+                return f"{base_resp} [SEG] {description} [END]"
             else:
-                # Still include [SEG] even without description for consistency
-                resp = f"{base_resp}. [SEG]"
-                return resp
-                
+                return f"{base_resp} [SEG] [END]"
+
     def __getitem__(self, idx):
         image_path = self.images[idx]
         image_name = os.path.basename(image_path)
@@ -350,7 +348,7 @@ class CustomDataset(torch.utils.data.Dataset):
 
         # Initialize mask
         mask = torch.zeros((1, resize[0], resize[1]))
-        
+
         # Load mask for tampered images
         if cls_labels == 2:
             base_name = os.path.splitext(image_name)[0]
@@ -365,15 +363,15 @@ class CustomDataset(torch.utils.data.Dataset):
 
         # Generate conversation
         conv = conversation_lib.default_conversation.copy()
-        conv.append_message(conv.roles[0], 
+        conv.append_message(conv.roles[0],
               f"{DEFAULT_IMAGE_TOKEN}\nCan you identify if this image is real, full synthetic, or tampered image? Please mask the tampered regions if it is tampered and answer why.")
-        
+
         response = self._generate_response(cls_labels, image_name)
         conv.append_message(conv.roles[1], response)
         conversation = conv.get_prompt()
         has_text = image_name in self.text_descriptions
         labels = torch.ones(mask.shape[1], mask.shape[2]) * self.ignore_label
-        
+
         return image_path, image, image_clip, [conversation], mask, labels, cls_labels, resize, None, None, False, has_text
 
     def __len__(self):
