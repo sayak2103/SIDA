@@ -35,6 +35,7 @@ Compared with state-of-the-art deepfake detection models on SID-Set and other be
 - 🔥 The code and dataset are coming soon
 - 🔥 (26-02-2025) SIDA has been accepted by CVPR2025! The code and dataset will be released recently.
 - 🔥 (16-03-2025) Code release. 
+- 🔥 (20-03-2025) Code and models updated. 
 ## Methods
 
 <div align="center">
