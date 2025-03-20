@@ -1,7 +1,8 @@
+
 import argparse
 import os
 import sys
-
+import re
 import cv2
 import numpy as np
 import torch
@@ -45,6 +46,26 @@ def parse_args(args):
     )
     return parser.parse_args(args)
 
+def remove_repeated_tags(text):
+    tag_content_pattern = r'<([^>]+)>([^<]+)'
+    matches = re.findall(tag_content_pattern, text)
+    if matches:
+        first_tag = f"<{matches[0][0]}>"
+        parts = text.split(first_tag, 1)
+        prefix = parts[0] if len(parts) > 1 else ""
+        unique_segments = []
+        seen_pairs = set()
+        for tag, content in matches:
+
+            key = (tag, content.strip())
+
+            if key not in seen_pairs:
+                seen_pairs.add(key)
+                unique_segments.append(f"<{tag}>{content}")
+
+        result = prefix + ''.join(unique_segments)
+        return result
+    return text
 
 def preprocess(
     x,
@@ -76,6 +97,7 @@ def main(args):
         use_fast=False,
     )
     tokenizer.pad_token = tokenizer.unk_token
+    num_added_token = tokenizer.add_tokens("[END]")
     args.seg_token_idx = tokenizer("[SEG]", add_special_tokens=False).input_ids[0]
     args.cls_token_idx = tokenizer("[CLS]", add_special_tokens=False).input_ids[0]
 
@@ -142,7 +164,7 @@ def main(args):
 
     model.eval()
 
-    
+
     while True:
         conv = conversation_lib.conv_templates[args.conv_type].copy()
         conv.messages = []
@@ -206,13 +228,15 @@ def main(args):
             input_ids,
             resize_list,
             original_size_list,
-            max_new_tokens=256,
+            max_new_tokens=512,
             tokenizer=tokenizer,
         )
         output_ids = output_ids[0][output_ids[0] != IMAGE_TOKEN_INDEX]
 
         text_output = tokenizer.decode(output_ids, skip_special_tokens=False)
         text_output = text_output.replace("\n", "").replace("  ", " ")
+        text_output = remove_repeated_tags(text_output)  # Apply post-processing
+
         print("text_output: ", text_output)
 
         for i, pred_mask in enumerate(pred_masks):
