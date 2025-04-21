@@ -161,8 +161,8 @@ Note: The paper's results were generated using SIDA-7B and SIDA-13B models. To r
 To chat with SIDA,  we recommend using SIDA-13B for more accurate segmentation results. To view explanation results, please use SIDA-13B-description.
 
 ```
-CUDA_VISIBLE_DEVICES=0 python chat_description.py --version='saberzl/SIDA-13B-description'
-CUDA_VISIBLE_DEVICES=0 python chat.py --version='saberzl/SIDA-13B'
+CUDA_VISIBLE_DEVICES=0 python chat_description.py --version='./ck/SIDA-13B-description'
+CUDA_VISIBLE_DEVICES=0 python chat.py --version='./ck/SIDA-13B'
 ```
 
 Examples:
