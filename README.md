@@ -120,7 +120,6 @@ deepspeed --master_port=24999 train_SIDA.py \
   --steps_per_epoch=1000 \
   --lr=0.0001 \
 ```
-
 ### Merge LoRA Weight
 When training is finished, to get the full model weight:
 ```
@@ -142,6 +141,8 @@ CUDA_VISIBLE_DEVICES="" python3 merge_lora_weights_and_save_hf_model.py \
   --weight="./runs/SIDA-7B/pytorch_model.bin" \
   --save_path="./ck/SIDA-7B"
 ```
+### Training description model
+You can run the train_SIDA_description.sh script to fine-tune SIDA-7B/13B using labeled data. Please download the 3K description dataset from the provided [link](https://drive.google.com/file/d/1tGIe1mWvdRFRqBeY4vADY3y90Y-kJEGZ/view?usp=sharing).
 
 ### Validation
 ```
