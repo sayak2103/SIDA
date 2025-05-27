@@ -1,3 +1,19 @@
+"""
+SIDA Model Implementation
+
+This module defines the SIDA (Segment-Identify-Detect-Answer) model for image classification and segmentation,
+particularly for detecting real, synthetic, or tampered images. It integrates vision and language models,
+and provides loss functions, model classes, and evaluation logic.
+
+Key Classes:
+    - SidaMetaModel: Base model with vision backbone and heads.
+    - SidaModel: Main model combining vision and language.
+    - SIDAForCausalLM: Model for causal language modeling with SIDA.
+
+Key Functions:
+    - dice_loss: DICE loss for segmentation.
+    - sigmoid_ce_loss: Sigmoid cross-entropy loss for segmentation.
+"""
 from typing import List, Optional, Tuple
 import torch
 import torch.nn as nn
@@ -62,11 +78,20 @@ def sigmoid_ce_loss(
     return loss
 
 class SidaMetaModel:
+    """
+    Meta model for SIDA, responsible for initializing the vision backbone,
+    projection layers, and classification/segmentation heads.
+    """
     def __init__(
         self,
         config,
         **kwargs,
     ):
+        """
+        Args:
+            config: Model configuration object.
+            **kwargs: Additional keyword arguments for configuration.
+        """
         super(SidaMetaModel, self).__init__(config)
 
         self.config = config

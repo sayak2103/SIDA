@@ -9,6 +9,10 @@ from .constants import IMAGE_TOKEN_INDEX
 
 
 def load_image_from_base64(image):
+    """
+    input : Base64 encoded bytes-like object
+    output: PIL Image object
+    """
     return Image.open(BytesIO(base64.b64decode(image)))
 
 
