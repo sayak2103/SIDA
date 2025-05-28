@@ -96,24 +96,33 @@ class SidaMetaModel:
 
         self.config = config
         if not hasattr(self.config, "train_mask_decoder"):
+            # If config doesn't have mask decoder info, set it from kwargs
             self.config.train_mask_decoder = kwargs["train_mask_decoder"]
             self.config.out_dim = kwargs["out_dim"]
             self.vision_pretrained = kwargs.get("vision_pretrained", None)
         else:
             self.vision_pretrained = kwargs.get("vision_pretrained", None)
+            # Initialize modules if config is ready
             self.initialize_sida_modules(self.config)
 
     def initialize_sida_modules(self, config):
         # SAM
+        """
+        Initialize SIDA-specific modules: vision backbone, projection layers, heads, and attention.
+
+        Args:
+            config: Model configuration object.
+        """
+        # Build the SAM vision backbone (see segment_anything.py)
         self.visual_model = build_sam_vit_h(self.vision_pretrained)
         for param in self.visual_model.parameters():
-            param.requires_grad = False
+            param.requires_grad = False # Freeze vision backbone
         if config.train_mask_decoder:
-            self.visual_model.mask_decoder.train()
+            self.visual_model.mask_decoder.train() # unfreeze mask decoder if training
             for param in self.visual_model.mask_decoder.parameters():
-                param.requires_grad = True
+                param.requires_grad = True # unfreeze
 
-        # Projection layer
+        # Projection layer for text features
         in_dim = config.hidden_size
         out_dim = config.out_dim
         text_fc = [
@@ -123,6 +132,8 @@ class SidaMetaModel:
             nn.Dropout(0.0),
         ]
         self.text_hidden_fcs = nn.ModuleList([nn.Sequential(*text_fc)])
+        
+        # classification head  : projects to 3 classes (0-real, 1-full synthetic, 2-tampered)
         cls_head = (
             nn.Linear(in_dim, in_dim // 2),
             nn.ReLU(),
@@ -131,10 +142,16 @@ class SidaMetaModel:
         )
         self.cls_head = nn.ModuleList([nn.Sequential(*cls_head)])
         print(f"Created cls_head: {cls_head}")
+
+        # project classification output to segmentation embeddings
         self.sida_fc1 = nn.Linear(3, out_dim)
         print(f"Created sida_fc1: {self.sida_fc1}")
+
+        # multi head attention for segmentation creation
         self.attention_layer = nn.MultiheadAttention(embed_dim=out_dim, num_heads=8, batch_first=True)
         print(f"Created attention_layer: {self.attention_layer}")
+
+        # Set all parameters to require gradients initially
         self.text_hidden_fcs.train()
         self.cls_head.train()
         self.sida_fc1.train()
@@ -149,10 +166,20 @@ class SidaMetaModel:
             param.requires_grad = True
 
 class SidaModel(SidaMetaModel, LlavaLlamaModel):
+    """
+    Main SIDA model combining vision and language models.
+    Inherits from SidaMetaModel (vision) and LlavaLlamaModel (language, see llava_llama.py).
+    """
     def __init__(self, config, **kwargs):
+        """
+        Args:
+            config: Model configuration object.
+            **kwargs: Additional keyword arguments for configuration.
+        """
         super(SidaModel, self).__init__(config, **kwargs)
         
         print("\nInitializing SidaModel:")
+        # configuration parameters for the model
         self.config.use_cache = False
         self.config.vision_tower = self.config.mm_vision_tower
         self.config.mm_vision_select_feature = "patch"
@@ -167,8 +194,17 @@ class SidaModel(SidaMetaModel, LlavaLlamaModel):
         self.config.llm_input_size = 1024
 
 class SIDAForCausalLM(LlavaLlamaForCausalLM):
+    """
+    SIDA model for causal language modeling, integrating vision and language for classification and segmentation.
+    """
     def __init__(self, config, **kwargs):
+        """
+        Args:
+            config: Model configuration object.
+            **kwargs: Additional keyword arguments for configuration.
+        """
         if not hasattr(config, "train_mask_decoder"):
+            # Set vision tower and multimodal start/end tokens if not present
             config.mm_use_im_start_end = kwargs.pop("use_mm_start_end", True)
             config.mm_vision_tower = kwargs.get(
                 "vision_tower", "openai/clip-vit-large-patch14"
@@ -176,20 +212,35 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
         else:
             config.mm_vision_tower = config.vision_tower
 
+        # loss weights for different components
         self.ce_loss_weight = kwargs.pop("ce_loss_weight", None)
         self.dice_loss_weight = kwargs.pop("dice_loss_weight", None)
         self.bce_loss_weight = kwargs.pop("bce_loss_weight", None)
         self.cls_loss_weight = kwargs.pop("cls_loss_weight", None)
         self.mask_loss_weight =  kwargs.pop("mask_loss_weight", None)
         # 2. Initialize base model
+        # token indices for classification and segmentation
         self.cls_token_idx = kwargs.pop("cls_token_idx")
         self.seg_token_idx = kwargs.pop("seg_token_idx")
         super().__init__(config)
+        # initialize SIDA-specific modules
         self.model = SidaModel(config, **kwargs)
         self.model.initialize_sida_modules(config)
+        # languange model head
         self.lm_head = nn.Linear(config.hidden_size, config.vocab_size, bias=False)
         self.post_init()
+
+
     def get_visual_embs(self, pixel_values: torch.FloatTensor):
+        """
+        Extract visual embeddings from images using the vision backbone.
+
+        Args:
+            pixel_values (torch.FloatTensor): Batch of images.
+
+        Returns:
+            torch.FloatTensor: Image embeddings.
+        """
         with torch.no_grad():
             image_embeddings_list = []
             for i in range(pixel_values.shape[0]):
@@ -203,6 +254,15 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
         return image_embeddings
     
     def forward(self, **kwargs):
+        """
+        Forward pass for SIDA model. Handles caching for generation.
+
+        Args:
+            **kwargs: Model inputs.
+
+        Returns:
+            Model output or result of model_forward.
+        """
         if "past_key_values" in kwargs:
             return super().forward(**kwargs)
         return self.model_forward(**kwargs)
@@ -223,12 +283,37 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
         inference: bool = False,  # Flag for inference mode
         **kwargs,
     ):
+        """
+        Main forward logic for SIDA model, handling both training and inference.
+
+        Args:
+            images: Batch of images for vision encoder.
+            images_clip: Images for CLIP encoder.
+            input_ids: Tokenized input sequences.
+            cls_labels: Class labels for classification.
+            labels: Labels for language modeling.
+            attention_masks: Attention masks for input.
+            offset: Offsets for batch processing.
+            masks_list: Ground truth masks for segmentation.
+            cls_labels_list: List of class labels.
+            label_list: List of ground truth labels.
+            resize_list: List of resize parameters for masks.
+            inference: If True, run in inference mode.
+            **kwargs: Additional arguments.
+
+        Returns:
+            dict: Losses and outputs for training, or predictions for inference.
+        """
         if images.size(0) != images_clip.size(0):
             raise ValueError(f"Batch size mismatch: images {images.size(0)} != images_clip {images_clip.size(0)}")
+        
+        # Get visual embeddings from images
         image_embeddings = self.get_visual_embs(images)
         B, C, H, W = image_embeddings.shape
         
         assert B == len(offset) - 1
+
+        # preparing classification token masks
         cls_token_mask = (input_ids[:,1:] == self.cls_token_idx)
         cls_token_mask = torch.cat([
             cls_token_mask,
@@ -243,6 +328,7 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
                 dim=1,
             )
         if inference:
+            # Inference mode: generate hidden states for each batch
             n_batch = 1
             length = input_ids.shape[0]
             assert images_clip.shape[0] == 1
@@ -250,6 +336,7 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
             output_hidden_states = []
             for i in range(n_batch):
                 start_i, end_i = i * length, min((i + 1) * length, input_ids.shape[0])
+                # propagate forward though the sida model
                 output_i = super().forward(
                     images=images_clip_extend[: end_i - start_i],
                     attention_mask=attention_masks[start_i:end_i],
@@ -264,6 +351,7 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
             output_hidden_states = output_hidden_states_list
             output = None
         else:
+            # Training mode: process each batch and concatenate
             images_clip_list = []
             for i in range(len(offset) - 1):
                 start_i, end_i = offset[i], offset[i + 1]
@@ -283,10 +371,13 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
                 output_hidden_states=True,
             )
             output_hidden_states = output.hidden_states
-            # Geting cls information
+            # Geting classification information
+        
         assert len(self.model.cls_head) == 1
+        #pass through classification head
         last_hidden_state_cls = self.model.cls_head[0](output_hidden_states[-1]) 
 
+        # get [CLS] token embeddings
         cls_result = last_hidden_state_cls[cls_token_mask]
 
         logits = cls_result
@@ -294,6 +385,7 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
         cls_loss = loss_fct(logits, cls_labels)
 
         #Geting segmentation
+        # logic for segmentation
         assert len(self.model.text_hidden_fcs) == 1
         mask_bce_loss = 0
         mask_dice_loss = 0
@@ -330,7 +422,8 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
                 start_i, end_i = seg_token_offset[i], seg_token_offset[i + 1]
                 pred_embeddings_.append(pred_embeddings[start_i:end_i])
             pred_embeddings = pred_embeddings_
-            #Attention
+            
+            #Attention mdule for enhancing segmentation embeddings
             cls_projected = self.model.sida_fc1(cls_result)
             enhanced_pred_embeddings = []
             for i in range(len(pred_embeddings)):
@@ -383,11 +476,13 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
             gt_masks = masks_list
 
             if inference:
+                # Inference mode: return predictions
                 return {
-            "pred_masks": pred_masks,
-            "gt_masks": gt_masks,
-            "logits": logits,
-            }
+                        "pred_masks": pred_masks,
+                        "gt_masks": gt_masks,
+                        "logits": logits,
+                    }
+            # Training mode: calculate losses
             for batch_idx in range(len(pred_masks)):
                 gt_mask = gt_masks[batch_idx]
                 pred_mask = pred_masks[batch_idx]
@@ -434,6 +529,21 @@ class SIDAForCausalLM(LlavaLlamaForCausalLM):
         max_new_tokens=64,
         tokenizer=None,
     ):
+        """
+        Evaluate the model on a batch of images and input sequences.
+
+        Args:
+            images_clip: Images for CLIP encoder.
+            images: Images for vision encoder.
+            input_ids: Tokenized input sequences.
+            resize_list: List of resize parameters for masks.
+            original_size_list: List of original image sizes.
+            max_new_tokens: Maximum number of tokens to generate.
+            tokenizer: Tokenizer for decoding output.
+
+        Returns:
+            Tuple: (output_ids, pred_masks)
+        """
         with torch.no_grad():
             # Generate initial output sequence
             outputs = self.generate(
