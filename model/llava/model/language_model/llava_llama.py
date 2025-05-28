@@ -11,6 +11,34 @@
 #    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
+"""
+LLAVA_LLAMA model implementation:
+    Custom language model based on the LLaMA architecture, 
+    extending it with multimodal capabilities under the "Llava" model type. 
+    It integrates with the Hugging Face Transformers library and defines a causal 
+    language model (LlavaLlamaForCausalLM) that supports multimodal inputs, 
+    such as text and images.
+
+    Key Classes:
+    - LlavaConfig: Custom configuration class for Llava models, extending LlamaConfig.
+    - LlavaLlamaModel: Custom model class that extends LlamaModel with Llava capabilities.
+          - LlavaMetaModel: Base class for Llava models, providing multimodal support.
+          - LlamaModel: Base class for LLaMA models, providing the core architecture.
+    - LlavaLlamaForCausalLM: Custom causal language model class that extends LlamaForCausalLM,
+    integrating LlavaLlamaModel and adding support for multimodal inputs and outputs.
+    
+    Key Functions:
+    - __init__ (in LlavaLlamaForCausalLM)
+        -Initializes the model with a multimodal backbone (LlavaLlamaModel) and
+          a linear head (lm_head).
+        -Calls post_init() for weight initialization.
+    - forward (in LlavaLlamaForCausalLM)
+        -Defines the forward pass of the model, handling multimodal inputs,
+            computing logits, and optionally calculating loss.
+    - prepare_inputs_for_generation (in LlavaLlamaForCausalLM)
+        -Prepares inputs for the generation step, handling past key values,
+            attention masks, and multimodal inputs like images.          
+"""
 
 
 from typing import List, Optional, Tuple, Union
@@ -133,6 +161,56 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
             hidden_states=output_hidden_states,  # outputs.hidden_states,
             attentions=outputs.attentions,
         )
+"""
+Inputs:
+    - input_ids:
+        A tensor of shape (batch_size, sequence_length) 
+        containing token IDs for the input sequence.
+    - attention_mask:
+        A tensor of shape (batch_size, sequence_length) 
+        indicating which tokens should be attended to (1 for valid tokens, 0 for padding).
+    - past_key_values:
+        A list of tensors containing precomputed key and 
+        value states for faster decoding during generation.
+    - inputs_embeds:
+        A tensor of shape (batch_size, sequence_length, embedding_dim) 
+        containing precomputed embeddings for the input tokens.
+    - images:
+        A tensor of shape (batch_size, channels, height, width)
+          representing multimodal image inputs.
+Targets:
+    - labels:
+        A tensor of shape (batch_size, sequence_length) containing 
+        the target token IDs for loss computation.
+    - logits:
+        A tensor of shape (batch_size, sequence_length, vocab_size) 
+        containing the predicted token probabilities.
+    - loss:
+        A scalar tensor representing the cross-entropy loss, 
+        computed if labels are provided.
+    - hidden_states:
+        A tensor of shape (batch_size, sequence_length, hidden_size) 
+        containing the hidden states of the model.
+    - attentions:
+        A list of tensors containing attention weights for each layer (optional).
+Return:
+    - loss:
+        Type: torch.FloatTensor (optional)
+        Description: The cross-entropy loss, computed if labels are provided.
+    - logits:
+        Type: torch.FloatTensor
+        Shape: (batch_size, sequence_length, vocab_size)
+        Description: The predicted token probabilities.
+    - past_key_values:
+        Type: List[torch.FloatTensor]
+        Description: Contains precomputed key and value states for faster decoding.
+    - hidden_states:
+        Type: torch.FloatTensor (optional)
+        Description: Hidden states of the model for each layer.
+    - attentions:
+        Type: List[torch.FloatTensor] (optional)
+        Description: Attention weights for each layer.
+    """
 
     def prepare_inputs_for_generation(
         self,
@@ -152,7 +230,7 @@ class LlavaLlamaForCausalLM(LlamaForCausalLM, LlavaMetaForCausalLM):
         else:
             model_inputs = {"input_ids": input_ids}
 
-        model_inputs.update(
+        model_inputs.update( 
             {
                 "past_key_values": past_key_values,
                 "use_cache": kwargs.get("use_cache"),
