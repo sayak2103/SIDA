@@ -3,21 +3,50 @@
 
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
+"""
+SAM Model Builder
 
+This module provides functions to build different variants of the Segment Anything Model (SAM)
+using Vision Transformers (ViT) as the image encoder backbone. It supports 'huge', 'large', and 'base' variants.
+
+Key Functions:
+    - build_sam_vit_h: Build SAM with ViT-Huge backbone.
+    - build_sam_vit_l: Build SAM with ViT-Large backbone.
+    - build_sam_vit_b: Build SAM with ViT-Base backbone.
+    - _build_sam: Internal function to construct a SAM model with given parameters.
+
+References:
+    - .modeling: Imports core SAM components (ImageEncoderViT, MaskDecoder, PromptEncoder, Sam, TwoWayTransformer).
+"""
 from functools import partial
 
 import torch
 
-from .modeling import (ImageEncoderViT, MaskDecoder, PromptEncoder, Sam,
-                       TwoWayTransformer)
+# Import core SAM components from the local modeling.py file
+from .modeling import (
+    ImageEncoderViT,  # Vision Transformer encoder for images
+    MaskDecoder,      # Decoder to produce segmentation masks
+    PromptEncoder,    # Encodes prompts (points, boxes, text, etc.)
+    Sam,              # The main SAM model class
+    TwoWayTransformer # Transformer block used in the mask decoder
+)
 
 
 def build_sam_vit_h(checkpoint=None):
+    """
+    Build a SAM model with a ViT-Huge backbone.
+
+    Args:
+        checkpoint (str, optional): Path to a model checkpoint to load weights from.
+
+    Returns:
+        Sam: An instance of the SAM model with ViT-Huge backbone.
+    """
     return _build_sam(
-        encoder_embed_dim=1280,
-        encoder_depth=32,
-        encoder_num_heads=16,
-        encoder_global_attn_indexes=[7, 15, 23, 31],
+        encoder_embed_dim=1280,         # Embedding dimension for ViT-H
+        encoder_depth=32,               # Number of transformer layers
+        encoder_num_heads=16,           # Number of attention heads
+        encoder_global_attn_indexes=[7, 15, 23, 31],  # Layers with global attention
         checkpoint=checkpoint,
     )
 
@@ -26,25 +55,43 @@ build_sam = build_sam_vit_h
 
 
 def build_sam_vit_l(checkpoint=None):
+    """
+    Build a SAM model with a ViT-Large backbone.
+
+    Args:
+        checkpoint (str, optional): Path to a model checkpoint to load weights from.
+
+    Returns:
+        Sam: An instance of the SAM model with ViT-Large backbone.
+    """
     return _build_sam(
-        encoder_embed_dim=1024,
-        encoder_depth=24,
-        encoder_num_heads=16,
-        encoder_global_attn_indexes=[5, 11, 17, 23],
+        encoder_embed_dim=1024,         # Embedding dimension for ViT-L
+        encoder_depth=24,               # Number of transformer layers
+        encoder_num_heads=16,           # Number of attention heads
+        encoder_global_attn_indexes=[5, 11, 17, 23],  # Layers with global attention
         checkpoint=checkpoint,
     )
 
 
 def build_sam_vit_b(checkpoint=None):
+    """
+    Build a SAM model with a ViT-Base backbone.
+
+    Args:
+        checkpoint (str, optional): Path to a model checkpoint to load weights from.
+
+    Returns:
+        Sam: An instance of the SAM model with ViT-Base backbone.
+    """
     return _build_sam(
-        encoder_embed_dim=768,
-        encoder_depth=12,
-        encoder_num_heads=12,
-        encoder_global_attn_indexes=[2, 5, 8, 11],
+        encoder_embed_dim=768,          # Embedding dimension for ViT-B
+        encoder_depth=12,               # Number of transformer layers
+        encoder_num_heads=12,           # Number of attention heads
+        encoder_global_attn_indexes=[2, 5, 8, 11],  # Layers with global attention
         checkpoint=checkpoint,
     )
 
-
+# Registry for easy lookup of SAM model builders by name
 sam_model_registry = {
     "default": build_sam_vit_h,
     "vit_h": build_sam_vit_h,
@@ -60,10 +107,24 @@ def _build_sam(
     encoder_global_attn_indexes,
     checkpoint=None,
 ):
+    """
+    Internal function to construct a SAM model with specified transformer parameters.
+
+    Args:
+        encoder_embed_dim (int): Embedding dimension for the ViT encoder.
+        encoder_depth (int): Number of transformer layers.
+        encoder_num_heads (int): Number of attention heads.
+        encoder_global_attn_indexes (list): Indices of layers with global attention.
+        checkpoint (str, optional): Path to a model checkpoint to load weights from.
+
+    Returns:
+        Sam: An instance of the SAM model.
+    """
     prompt_embed_dim = 256
     image_size = 1024
     vit_patch_size = 16
     image_embedding_size = image_size // vit_patch_size
+    # Instantiate the SAM model with the specified ViT backbone and components
     sam = Sam(
         image_encoder=ImageEncoderViT(
             depth=encoder_depth,
@@ -97,6 +158,7 @@ def _build_sam(
             iou_head_depth=3,
             iou_head_hidden_dim=256,
         ),
+        # Normalization mean and standard deviation (ImageNet statistics)
         pixel_mean=[123.675, 116.28, 103.53],
         pixel_std=[58.395, 57.12, 57.375],
     )
