@@ -26,6 +26,10 @@ import warnings
 warnings.filterwarnings("ignore")
 
 def parse_args(args):
+    """
+    Parse command-line arguments for SIDA model training.
+    Returns an argparse.Namespace object with all config values.
+    """
     parser = argparse.ArgumentParser(description="SIDA Model Training")
     parser.add_argument("--local_rank", default=0, type=int, help="node rank")
     parser.add_argument(
@@ -104,9 +108,14 @@ def parse_args(args):
 
     return parser.parse_args(args)
 def main(args):
+    """
+    Main training entry point.
+    Initializes model, tokenizer, datasets, optimizer, and handles training/validation loop.
+    """
     args = parse_args(args)
     # Move the check here, after parsing
-    deepspeed.init_distributed()
+    deepspeed.init_distributed()# initializing disttributed training
+    # Set up logging directory and TensorBoard writer
     args.log_dir = os.path.join(args.log_base_dir, args.exp_name)
     if args.local_rank == 0:
         os.makedirs(args.log_dir, exist_ok=True)
@@ -114,7 +123,7 @@ def main(args):
     else:
         writer = None
 
-     # Create model
+    # Create model
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         args.version,
         cache_dir=None,
@@ -133,6 +142,7 @@ def main(args):
             [DEFAULT_IM_START_TOKEN, DEFAULT_IM_END_TOKEN], special_tokens=True
         )
 
+    # setting model arguments
     model_args = {
         "train_mask_decoder": args.train_mask_decoder,
         "out_dim": args.out_dim,
@@ -147,15 +157,19 @@ def main(args):
         "vision_tower": args.vision_tower,
         "use_mm_start_end": args.use_mm_start_end,
     }
+    #set precision and datatype of the model
     torch_dtype = torch.float32
     if args.precision == "bf16":
         torch_dtype = torch.bfloat16
     elif args.precision == "fp16":
         torch_dtype = torch.half
+    
+    #get the model from the pretrained version
     model = SIDAForCausalLM.from_pretrained(
         args.version, torch_dtype=torch_dtype, low_cpu_mem_usage=True, **model_args
     )
 
+    # set special tokens for the model
     model.config.eos_token_id = tokenizer.eos_token_id
     model.config.bos_token_id = tokenizer.bos_token_id
     model.config.pad_token_id = tokenizer.pad_token_id
@@ -166,6 +180,8 @@ def main(args):
             print(f"Found {component} in parameters: {matching_params}")
         else:
             print(f"Component not found: {component}")
+    
+    # enabling gradient requirement and gradient checkpoints for efficient memory usage
     model.enable_input_require_grads()
     model.gradient_checkpointing_enable()
     model.get_model().initialize_vision_modules(model.get_model().config)
@@ -174,17 +190,19 @@ def main(args):
     if not args.eval_only:
         model.get_model().initialize_sida_modules(model.get_model().config)
 
+    # freeze vision tower and mm_projector parameters
     for p in vision_tower.parameters():
         p.requires_grad = False
 
     for p in model.get_model().mm_projector.parameters():
         p.requires_grad = False
 
-
+    # set conversation template for LLava
     conversation_lib.default_conversation = conversation_lib.conv_templates[
         args.conv_type
     ]
 
+    # LoRA configuration
     lora_r = args.lora_r
     if lora_r > 0:
         def find_linear_layers(model, lora_target_modules):
@@ -228,6 +246,7 @@ def main(args):
         model.print_trainable_parameters()
     model.resize_token_embeddings(len(tokenizer))
 
+    # Freeze lm_head, unfreeze custom heads and decoders
     for n, p in model.named_parameters():
         if "lm_head" in n:
             p.requires_grad = False
@@ -241,6 +260,7 @@ def main(args):
         ):
             p.requires_grad = True
 
+    # Print trainable parameters
     print("Checking trainable parameters:")
     total_params = 0
     for n, p in model.named_parameters():
@@ -249,6 +269,7 @@ def main(args):
             total_params += p.numel()
     print(f"Total trainable parameters: {total_params}")
 
+    # dataset and dataloader initialization
     world_size = torch.cuda.device_count()
     args.distributed = world_size > 1
     train_dataset = CustomDataset(
@@ -263,6 +284,7 @@ def main(args):
     print(f"\nInitializing datasets:")
     print(f"Training split size: {len(train_dataset)}")
 
+    #validation dataset initialization
     if args.no_eval == False:
         val_dataset = CustomDataset(
             base_image_dir=args.dataset_dir,  # Root directory containing image data
@@ -278,6 +300,8 @@ def main(args):
     else:
         val_dataset = None
         print(f"Training with {len(train_dataset)} examples.")
+    
+    # DeepSpeed config for optimizer, scheduler, and mixed precision
     ds_config = {
         "train_micro_batch_size_per_gpu": args.batch_size,
         "gradient_accumulation_steps": args.grad_accumulation_steps,
@@ -321,6 +345,7 @@ def main(args):
             "allgather_bucket_size": 5e8,
         },
     }
+
     batch_sampler = BatchSampler(
         dataset=train_dataset,
         batch_size=ds_config["train_micro_batch_size_per_gpu"],
@@ -343,6 +368,7 @@ def main(args):
             cls_token_idx=args.cls_token_idx,
         ),
     )
+    # Initialize DeepSpeed
     model_engine, optimizer, _, scheduler = deepspeed.initialize(
         model=model,
         model_parameters=model.parameters(),
@@ -350,6 +376,7 @@ def main(args):
         training_data=None,  # Set to None since we're providing our own loader
     )
 
+    # auto resume from checkpoints if auto_resume is enabled
     if args.auto_resume and len(args.resume) == 0:
         resume = os.path.join(args.log_dir,  "ckpt_model")
         if os.path.exists(resume):
@@ -394,10 +421,12 @@ def main(args):
 
     best_acc, best_score, cur_ciou = 0.0, 0.0, 0.0
 
+    # If evaluation is only required, skip training
     if args.eval_only:
         acc, giou, ciou, _ = validate(val_loader, model_engine, 0, writer, args)  # Classification validation
         exit()
 
+    #main training loop
     validation_epochs = [1,3,5,7,10]
     if args.local_rank == 0:
         print(f"\nTraining Configuration:")
@@ -496,6 +525,7 @@ def train(
 
             data_time.update(time.time() - end)
             input_dict = dict_to_cuda(input_dict)
+            # setting image tensor dtype and precision
             if args.precision == "fp16":
                 input_dict["images"] = input_dict["images"].half()
                 input_dict["images_clip"] = input_dict["images_clip"].half()
@@ -513,6 +543,7 @@ def train(
             mask_loss = output_dict["mask_loss"]
             losses.update(loss.item(), input_dict["images"].size(0))
             cls_losses.update(cls_loss.item(), input_dict["images"].size(0))
+            # Update mask losses only for "object/part synthetic" images(cls_label == 2)
             if input_dict['cls_labels'][0] == 2:
                 mask_bce_losses.update(mask_bce_loss.item(), input_dict["images"].size(0))
                 mask_dice_losses.update(mask_dice_loss.item(), input_dict["images"].size(0))
@@ -523,6 +554,7 @@ def train(
         batch_time.update(time.time() - end)
         end = time.time()
 
+        #logging and printing progress
         if global_step % args.print_freq == 0:
             if args.distributed:
                 batch_time.all_reduce()
@@ -708,8 +740,8 @@ def validate(val_loader, model_engine, epoch, writer, args, sample_ratio=None):
         writer.add_scalar("val/f1_score", f1_score, epoch)
         writer.add_scalar("val/auc_approx", auc_approx, epoch)
         for class_name, metrics in per_class_metrics.items():
-         for metric_name, value in metrics.items():
-             writer.add_scalar(f"val/{class_name.lower().replace('/', '_')}_{metric_name}", value, epoch)
+            for metric_name, value in metrics.items():
+                writer.add_scalar(f"val/{class_name.lower().replace('/', '_')}_{metric_name}", value, epoch)
 
         validation_type = "Full" if sample_ratio is None else f"Sampled ({sample_ratio*100}%)"
         print(f"\n{validation_type} Validation Results:")
