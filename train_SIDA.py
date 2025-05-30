@@ -124,6 +124,7 @@ def main(args):
         writer = None
 
     # Create model
+    #tokenizer from huggingface transformers library
     tokenizer = transformers.AutoTokenizer.from_pretrained(
         args.version,
         cache_dir=None,
@@ -132,6 +133,7 @@ def main(args):
         use_fast=False,
     )
 
+    # add special tokens to tokenizer
     tokenizer.pad_token = tokenizer.unk_token
     num_added_token = tokenizer.add_tokens("[CLS]")
     num_added_token = tokenizer.add_tokens("[SEG]")
@@ -164,7 +166,7 @@ def main(args):
     elif args.precision == "fp16":
         torch_dtype = torch.half
     
-    #get the model from the pretrained version
+    #get the model from the pretrained version of pytorch transformers library
     model = SIDAForCausalLM.from_pretrained(
         args.version, torch_dtype=torch_dtype, low_cpu_mem_usage=True, **model_args
     )
