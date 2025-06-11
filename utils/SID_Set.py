@@ -17,6 +17,11 @@ from model.segment_anything.utils.transforms import ResizeLongestSide
 from .utils import (DEFAULT_IM_END_TOKEN, DEFAULT_IM_START_TOKEN,
                     DEFAULT_IMAGE_TOKEN)
 
+"""
+    The collate_fn function is a custom batch collation function for a PyTorch DataLoader. 
+    It takes a batch of samples (each sample is a tuple returned by CustomDataset.__getitem__) 
+    and processes them into batched tensors and lists suitable for model input.
+"""
 def collate_fn(
     batch, tokenizer=None, conv_type="llava_v1", use_mm_start_end=True, local_rank=-1, cls_token_idx=None
 ):
